@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const connectDataBase = () => {
   mongoose
-    .connect(process.env.DB_URI || "mongodb://localhost:27017/ecommerce", {
+    .connect(process.env.DB_URI || "mongodb+srv://shoaib_188626:gtx1050ti@cluster1.0lhzcef.mongodb.net/teste", {
       useCreateIndex: true,
       useNewUrlParser: true,
       useUnifiedTopology: true,
