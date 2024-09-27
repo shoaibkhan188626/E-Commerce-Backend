@@ -1,7 +1,7 @@
 const express = require("express");
 const {
   newOrder,
-  getsingleOrder,
+  getSingleOrder,
   myOrders,
   getAllOrders,
   updateOrder,
@@ -17,7 +17,7 @@ const {
 router.route("/order/new").post(isAuthenticatedUser, newOrder); // Requires user to be authenticated
 
 // Route to get details of a single order by ID
-router.route("/order/:id").get(isAuthenticatedUser, getsingleOrder); // Requires user to be authenticated
+router.route("/order/:id").get(isAuthenticatedUser, getSingleOrder); // Requires user to be authenticated
 
 // Route to get all orders placed by the authenticated user
 router.route("/orders/me").get(isAuthenticatedUser, myOrders); // Requires user to be authenticated

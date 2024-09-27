@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const validTypes = [String, Number, Date, Boolean, mongoose.Schema.Types.ObjectId];
 
 const field = (type, options = {}) => {

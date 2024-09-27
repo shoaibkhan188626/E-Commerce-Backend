@@ -1,15 +1,19 @@
 const express = require("express");
+const rateLimit = require("express-rate-limit");
 
 const {
   getAllProducts,
   createProduct,
   updateProduct,
   deleteProduct,
-  getProductDetails,
   getAdminProducts,
   createProductReview,
   deleteReview,
   getProductReviews,
+  getProductsDetails,
+  aggregateProductStats,
+  aggregateProductsByCategory,
+  aggregateProductsWithPagination,
 } = require("../controllers/productController.js");
 
 const {
@@ -19,55 +23,76 @@ const {
 
 const router = express.Router();
 
-// Route to get all products
-router.route("/products").get(getAllProducts);
+// Apply rate limiter to limit requests
+const limiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: "Too many requests from this IP, please try again later.",
+});
 
-// Route to get all products for admin only
+// Route to get all products with limiter and cache middleware
+router.route("/products").get(limiter, getAllProducts);
+
+// Admin routes for product management
 router
   .route("/admin/products")
   .get(
-    isAuthenticatedUser,          // Middleware to ensure user is authenticated
-    authorizeRoles("admin"),       // Middleware to authorize only admin users
-    getAdminProducts               // Controller function to handle the request
+    limiter,
+    isAuthenticatedUser,
+    authorizeRoles("admin"),
+    getAdminProducts
   );
 
-// Route to create a new product
 router
   .route("/admin/product/new")
   .post(
-    isAuthenticatedUser,          // Middleware to ensure user is authenticated
-    authorizeRoles("admin"),       // Middleware to authorize only admin users
-    createProduct                 // Controller function to handle the request
+    limiter,
+    isAuthenticatedUser,
+    authorizeRoles("admin"),
+    createProduct
   );
 
-// Route to update or delete a product by ID
 router
   .route("/admin/product/:id")
   .put(
-    isAuthenticatedUser,          // Middleware to ensure user is authenticated
-    authorizeRoles("admin"),       // Middleware to authorize only admin users
-    updateProduct                 // Controller function to handle the request
+    limiter,
+    isAuthenticatedUser,
+    authorizeRoles("admin"),
+    updateProduct
   )
   .delete(
-    isAuthenticatedUser,          // Middleware to ensure user is authenticated
-    authorizeRoles("admin"),       // Middleware to authorize only admin users
-    deleteProduct                 // Controller function to handle the request
+    limiter,
+    isAuthenticatedUser,
+    authorizeRoles("admin"),
+    deleteProduct
   );
 
 // Route to get details of a specific product by ID
-router.route("/product/:id").get(getProductDetails);
+router.route("/product/:id").get(limiter, getProductsDetails);
 
-// Route to create or manage product reviews
+// Routes to manage product reviews
 router
   .route("/review")
   .put(
-    isAuthenticatedUser,          // Middleware to ensure user is authenticated
-    createProductReview           // Controller function to handle the request
+    limiter,
+    isAuthenticatedUser,
+    createProductReview
   )
-  .get(getProductReviews)         // Controller function to get reviews for a product
+  .get(limiter, getProductReviews)
   .delete(
-    isAuthenticatedUser,          // Middleware to ensure user is authenticated
-    deleteReview                  // Controller function to delete a review
+    limiter,
+    isAuthenticatedUser,
+    deleteReview
   );
+
+// Routes for aggregation stats and category-wise aggregation
+router.route("/admin/stats").get(limiter, aggregateProductStats);
+router
+  .route("/admin/category-stats")
+  .get(limiter, aggregateProductsByCategory);
+
+router
+  .route("/admin/products-aggregate")
+  .get(limiter, aggregateProductsWithPagination);
 
 module.exports = router;
