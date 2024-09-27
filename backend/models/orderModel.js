@@ -1,117 +1,62 @@
 const mongoose = require("mongoose");
+const { field } = require("../utils/fieldFiller");
 
-// Define the schema for an order
-const orderSchema = new mongoose.Schema({
-  // Shipping information for the order
-  shippingInfo: {
-    address: {
-      type: String,
-      required: true, // Address is required
-    },
-    city: {
-      type: String,
-      required: true, // City is required
-    },
-    state: {
-      type: String,
-      required: true, // State is required
-    },
-    country: {
-      type: String,
-      required: true, // Country is required
-    },
-    pinCode: {
-      type: Number,
-      required: true, // PIN Code is required
-    },
-    phoneNo: {
-      type: Number,
-      required: true, // Phone Number is required
-    },
-  },
-  // Items included in the order
-  orderItems: [
-    {
-      name: {
-        type: String,
-        required: true, // Item name is required
-      },
-      price: {
-        type: Number,
-        required: true, // Item price is required
-      },
-      quantity: {
-        type: Number,
-        required: true, // Quantity of the item is required
-      },
-      image: {
-        type: String,
-        required: true, // URL or path to item image is required
-      },
-      product: {
-        type: mongoose.Schema.ObjectId,
-        ref: "Product",
-        required: true, // Reference to the Product model, which is required
-      },
-    },
-  ],
-  // User who placed the order
-  user: {
-    type: mongoose.Schema.ObjectId,
-    ref: "User",
-    required: true, // Reference to the User model, which is required
-  },
-  // Payment information for the order
-  paymentInfo: {
-    id: {
-      type: String,
-      required: true, // Payment ID is required
-    },
-    status: {
-      type: String,
-      required: true, // Payment status is required
-    },
-  },
-  // Date and time when the payment was made
-  paidAt: {
-    type: Date,
-    required: true, // Date when payment was made is required
-  },
-  // Price details for the order
-  itemsPrice: {
-    type: Number,
+const shippingInfoSchema = new mongoose.Schema({
+  address: field(String),
+  city: field(String),
+  state: field(String),
+  country: field(String),
+  pinCode: field(Number),
+  phoneNo: field(Number, {
     required: true,
-    default: 0, // Default to 0 if not specified
-  },
-  taxPrice: {
-    type: Number,
-    required: true,
-    default: 0, // Default to 0 if not specified
-  },
-  shippingPrice: {
-    type: Number,
-    required: true,
-    default: 0, // Default to 0 if not specified
-  },
-  totalPrice: {
-    type: Number,
-    required: true,
-    default: 0, // Default to 0 if not specified
-  },
-  // Current status of the order
-  orderStatus: {
-    type: String,
-    required: true,
-    default: "Processing", // Default status is "Processing"
-  },
-  // Date and time when the order was delivered
-  deliveredAt: Date, // Optional field for when the order was delivered
-  // Date and time when the order was created
-  createdAt: {
-    type: Date,
-    default: Date.now, // Automatically set to current date and time
-  },
+    validate: {
+      validator: (v) => /^\d{10}$/.test(v),
+      message: (props) => `${props.value} is not a valid phone number!`,
+    },
+  }),
 });
 
-// Export the Order model based on the schema
+const orderSchema = new mongoose.Schema(
+  {
+    shippingInfo: shippingInfoSchema,
+    orderItems: [
+      {
+        name: field(String),
+        price: field(Number),
+        quantity: field(Number),
+        image: field(String),
+        product: {
+          type: mongoose.Schema.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+      },
+    ],
+    user: {
+      type: mongoose.Schema.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+    paymentInfo: {
+      id: field(String),
+      status: field(String),
+    },
+    paidAt: field(Date),
+    itemsPrice: field(Number, { default: 0 }),
+    taxPrice: field(Number, { default: 0 }),
+    shippingPrice: field(Number, { default: 0 }),
+    totalPrice: field(Number, { default: 0 }),
+    orderStatus: {
+      type: String,
+      required: true,
+      enum: ["Process", "Shipped", "Delivered", "Cancelled"],
+      default: "Processing",
+      index: true,
+    },
+    deliveredAt: field(Date),
+  },
+  { timestamps: true }
+);
+
 module.exports = mongoose.model("Order", orderSchema);
