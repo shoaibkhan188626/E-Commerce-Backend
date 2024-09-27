@@ -4,8 +4,8 @@ const { field } = require("../utils/fieldFiller"); // Importing the field functi
 // Define the schema for shipping information
 const shippingInfoSchema = new mongoose.Schema({
   address: field(String), // Shipping address as a string
-  city: field(String),    // City as a string
-  state: field(String),   // State as a string
+  city: field(String), // City as a string
+  state: field(String), // State as a string
   country: field(String), // Country as a string
   pinCode: field(Number), // PIN code as a number
   phoneNo: field(Number, {
@@ -53,7 +53,7 @@ const orderSchema = new mongoose.Schema(
     orderStatus: {
       type: String, // Status of the order
       required: true, // Status is required
-      enum: ["Process", "Shipped", "Delivered", "Cancelled"], // Allowed statuses
+      enum: ["Processing", "Shipped", "Delivered", "Cancelled"], // Allowed statuses
       default: "Processing", // Default status is "Processing"
       index: true, // Create an index for faster queries
     },

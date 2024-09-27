@@ -1,93 +1,77 @@
 const mongoose = require("mongoose");
+const { field } = require("../utils/fieldFiller"); // Importing the field function
 
 // Define the schema for a product
-const productSchema = mongoose.Schema({
-  // Product name
-  name: {
-    type: String,
-    required: [true, "please enter product name"], // Name is required
-    trim: true, // Trim whitespace from the beginning and end of the name
-  },
+const productSchema = new mongoose.Schema({
+  // Product name with an index for faster search queries
+  name: field(String, {
+    required: [true, "Please enter product name"],
+    trim: true,
+    index: true, // Indexing this field
+  }),
   // Product description
-  description: {
-    type: String,
-    required: [true, "please Enter product Description"], // Description is required
-  },
-  // Product price
-  price: {
-    type: Number,
-    required: [true, "please enter product price"], // Price is required
-    maxLength: [8, "product price must be within 8 characters"], // Price should not exceed 8 characters
-  },
+  description: field(String, {
+    required: [true, "Please enter product description"],
+  }),
+  // Product price with an index to allow sorting or filtering on price
+  price: field(Number, {
+    required: [true, "Please enter product price"],
+    maxLength: [8, "Product price must be within 8 characters"],
+    index: true, // Indexing for better performance when querying by price
+  }),
   // Product ratings
-  ratings: {
-    type: Number,
-    default: 0, // Default rating is 0
-  },
-  // Product images
+  ratings: field(Number, {
+    default: 0,
+  }),
+  // Product images (array of objects)
   images: [
     {
-      public_id: {
-        type: String,
-        required: true, // Image public ID is required
-      },
-      url: {
-        type: String,
-        required: true, // Image URL is required
-      },
+      public_id: field(String, { required: true }),
+      url: field(String, { required: true }),
     },
   ],
-  // Product category
-  category: {
-    type: String,
-    required: [true, "please enter product category"], // Category is required
-  },
+  // Product category with an index to allow faster category searches
+  category: field(String, {
+    required: [true, "Please enter product category"],
+    index: true, // Indexing this field
+  }),
   // Stock quantity
-  stock: {
-    type: Number,
-    required: [true, "please enter product stock"], // Stock is required
-    maxLength: [4, "product stock must be within 4 characters"], // Stock quantity should not exceed 4 characters
-    default: 1, // Default stock is 1
-  },
+  stock: field(Number, {
+    required: [true, "Please enter product stock"],
+    maxLength: [4, "Product stock must be within 4 characters"],
+    default: 1,
+  }),
   // Number of reviews
-  numOfReviews: {
-    type: Number,
-    default: 0, // Default number of reviews is 0
-  },
-  // Reviews for the product
+  numOfReviews: field(Number, {
+    default: 0,
+  }),
+  // Reviews for the product (array of objects)
   reviews: [
     {
       user: {
         type: mongoose.Schema.ObjectId,
         ref: "User",
-        required: true, // Reference to the User model, which is required
+        required: true,
       },
-      name: {
-        type: String,
-        required: true, // Reviewer's name is required
-      },
-      rating: {
-        type: Number,
-        required: true, // Rating is required
-      },
-      comment: {
-        type: String,
-        required: true, // Comment is required
-      },
+      name: field(String, { required: true }),
+      rating: field(Number, { required: true }),
+      comment: field(String, { required: true }),
     },
   ],
   // User who added the product
   user: {
     type: mongoose.Schema.ObjectId,
     ref: "User",
-    required: true, // Reference to the User model, which is required
+    required: true,
   },
   // Date and time when the product was created
-  createdAt: {
-    type: Date,
-    default: Date.now, // Automatically set to the current date and time
-  },
+  createdAt: field(Date, {
+    default: Date.now,
+  }),
 });
+
+// Indexing fields at schema level
+productSchema.index({ price: 1, stock: -1 }); // Compound index for sorting by price and stock
 
 // Export the Product model based on the schema
 module.exports = mongoose.model("Product", productSchema);
