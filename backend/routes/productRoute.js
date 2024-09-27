@@ -19,34 +19,55 @@ const {
 
 const router = express.Router();
 
-//get all products...
+// Route to get all products
 router.route("/products").get(getAllProducts);
 
-//get all products for admin
+// Route to get all products for admin only
 router
   .route("/admin/products")
-  .get(isAuthenticatedUser, authorizeRoles("admin"), getAdminProducts);
+  .get(
+    isAuthenticatedUser,          // Middleware to ensure user is authenticated
+    authorizeRoles("admin"),       // Middleware to authorize only admin users
+    getAdminProducts               // Controller function to handle the request
+  );
 
-//create new product...
+// Route to create a new product
 router
   .route("/admin/product/new")
-  .post(isAuthenticatedUser, authorizeRoles("admin"), createProduct);
+  .post(
+    isAuthenticatedUser,          // Middleware to ensure user is authenticated
+    authorizeRoles("admin"),       // Middleware to authorize only admin users
+    createProduct                 // Controller function to handle the request
+  );
 
-//update product...
+// Route to update or delete a product by ID
 router
   .route("/admin/product/:id")
-  .put(isAuthenticatedUser, authorizeRoles("admin"), updateProduct)
-  .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteProduct);
+  .put(
+    isAuthenticatedUser,          // Middleware to ensure user is authenticated
+    authorizeRoles("admin"),       // Middleware to authorize only admin users
+    updateProduct                 // Controller function to handle the request
+  )
+  .delete(
+    isAuthenticatedUser,          // Middleware to ensure user is authenticated
+    authorizeRoles("admin"),       // Middleware to authorize only admin users
+    deleteProduct                 // Controller function to handle the request
+  );
 
-//get product details
+// Route to get details of a specific product by ID
 router.route("/product/:id").get(getProductDetails);
 
-//product review...
-router.route("/review").put(isAuthenticatedUser, createProductReview);
-
+// Route to create or manage product reviews
 router
   .route("/review")
-  .get(getProductReviews)
-  .delete(isAuthenticatedUser, deleteReview);
+  .put(
+    isAuthenticatedUser,          // Middleware to ensure user is authenticated
+    createProductReview           // Controller function to handle the request
+  )
+  .get(getProductReviews)         // Controller function to get reviews for a product
+  .delete(
+    isAuthenticatedUser,          // Middleware to ensure user is authenticated
+    deleteReview                  // Controller function to delete a review
+  );
 
 module.exports = router;

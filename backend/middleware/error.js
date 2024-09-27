@@ -1,36 +1,39 @@
 const ErrorHandler = require("../utils/errorhandler.js");
 
+// Middleware for handling errors
 module.exports = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.message = err.message || "Internal Server Error";
+  // Set default status code and message for the error
+  err.statusCode = err.statusCode || 500; // Default to 500 if no status code is set
+  err.message = err.message || "Internal Server Error"; // Default error message
 
-  //wrong id in mongo db
+  // Handle Mongoose CastError (e.g., invalid ObjectId)
   if (err.name === "CastError") {
-    const message = `resource not found. invalid ${err.path}`;
-    err = new ErrorHandler(message, 400);
+    const message = `Resource not found. Invalid ${err.path}`; // Construct custom error message
+    err = new ErrorHandler(message, 400); // Set the error with a 400 status code
   }
 
-  //mongoose duplicate key error...
+  // Handle Mongoose duplicate key error (e.g., duplicate email)
   if (err.code === 11000) {
-    const messgae = `Duplicate ${Object.keys(err.keyValue)} entered`;
-    err = new ErrorHandler(messgae, 400);
+    const message = `Duplicate ${Object.keys(err.keyValue)} entered`; // Extract the field that caused the error
+    err = new ErrorHandler(message, 400); // Set the error with a 400 status code
   }
 
-  //wrong jwt error
+  // Handle JSON Web Token (JWT) errors
   if (err.code === "jsonWebTokenError") {
-    const messgae = `json web token is invalid try again`;
-    err = new ErrorHandler(messgae, 400);
+    const message = `JSON Web Token is invalid. Try again`; // Custom message for invalid JWT
+    err = new ErrorHandler(message, 400); // Set the error with a 400 status code
   }
 
-  //jwt expired error
+  // Handle JWT expiration errors
   if (err.code === "TokenExpiredError") {
-    const messgae = `json web token is expired try again`;
-    err = new ErrorHandler(messgae, 400);
+    const message = `JSON Web Token has expired. Try again`; // Custom message for expired JWT
+    err = new ErrorHandler(message, 400); // Set the error with a 400 status code
   }
 
+  // Send the error response
   res.status(err.statusCode).json({
     success: false,
     message: err.message,
-    //.stack ill show exactly where is the problem down to it's location will remove it in the when final build is done.
+    // .stack will show the exact location of the error in development but should be removed in production
   });
 };

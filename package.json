@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.1306.0",
+    "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cloudinary": "^1.33.0",
@@ -33,5 +34,8 @@
     "sequelize-cli": "^6.6.0",
     "stripe": "^8.174.0",
     "validator": "^13.6.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.0.1"
   }
 }

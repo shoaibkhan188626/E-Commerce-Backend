@@ -6,31 +6,31 @@ const {
   getAllOrders,
   updateOrder,
   deleteOrder,
-} = require("../controllers/orderController.js");
-const router = express.Router();
+} = require("../controllers/orderController.js"); // Importing order-related controller functions
+const router = express.Router(); // Create an Express router instance
 const {
   isAuthenticatedUser,
   authorizeRoles,
-} = require("../middleware/auth.js");
+} = require("../middleware/auth.js"); // Importing authentication and authorization middleware
 
-//route for creating a single order
-router.route("/order/new").post(isAuthenticatedUser, newOrder);
+// Route to create a new order
+router.route("/order/new").post(isAuthenticatedUser, newOrder); // Requires user to be authenticated
 
-//admin's route to see all of the orders placed by users
-router.route("/order/:id").get(isAuthenticatedUser, getsingleOrder);
+// Route to get details of a single order by ID
+router.route("/order/:id").get(isAuthenticatedUser, getsingleOrder); // Requires user to be authenticated
 
-//user's route to see his order/s
-router.route("/orders/me").get(isAuthenticatedUser, myOrders);
+// Route to get all orders placed by the authenticated user
+router.route("/orders/me").get(isAuthenticatedUser, myOrders); // Requires user to be authenticated
 
-//get all orders -- admin
+// Route to get all orders -- accessible only to admin
 router
   .route("/admin/orders")
-  .get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders);
+  .get(isAuthenticatedUser, authorizeRoles("admin"), getAllOrders); // Requires user to be authenticated and must be an admin
 
-//update or delete orders -- admin
+// Routes to update or delete a specific order by ID -- accessible only to admin
 router
   .route("/admin/order/:id")
-  .put(isAuthenticatedUser, authorizeRoles("admin"), updateOrder)
-  .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteOrder);
+  .put(isAuthenticatedUser, authorizeRoles("admin"), updateOrder) // Requires user to be authenticated and must be an admin
+  .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteOrder); // Requires user to be authenticated and must be an admin
 
-module.exports = router;
+module.exports = router; // Export the router to use in other parts of the application
