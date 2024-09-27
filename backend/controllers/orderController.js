@@ -36,16 +36,8 @@ exports.newOrder = catchAsyncErrors(async (req, res, next) => {
 });
 
 // Get a single order by ID
-exports.getsingleOrder = catchAsyncErrors(async (req, res, next) => {
-  const order = await Order.findById(req.params.id).populate(
-    "user",
-    "name email"
-  );
-
-  // If the order is not found, return an error
-  if (!order) {
-    return next(new ErrorHandler("Order not found with this id", 404));
-  }
+exports.getSingleOrder = catchAsyncErrors(async (req, res, next) => {
+  const order = await fetchOrder(req.params.id, next);
 
   // Respond with success status and the found order
   res.status(200).json({
@@ -72,10 +64,7 @@ exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
   const orders = await Order.find();
 
   // Calculate the total amount of all orders
-  let totalAmount = 0;
-  orders.forEach((order) => {
-    totalAmount += order.totalPrice;
-  });
+  const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
 
   // Respond with success status, total amount, and all orders
   res.status(200).json({
@@ -87,12 +76,7 @@ exports.getAllOrders = catchAsyncErrors(async (req, res, next) => {
 
 // Update order status -- admin only
 exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
-  const order = await Order.findById(req.params.id);
-
-  // If the order is not found, return an error
-  if (!order) {
-    return next(new ErrorHandler("Order not found with this Id", 404));
-  }
+  const order = await fetchOrder(req.params.id, next);
 
   // If the order is already delivered, return an error
   if (order.orderStatus === "Delivered") {
@@ -101,10 +85,9 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
 
   // If the status is "Shipped", update the stock of the products in the order
   if (req.body.status === "Shipped") {
-    order.orderItems.forEach(async (o) => {
-      await updateStock(o.product, o.quantity);
-    });
+    await updateStockInBatch(order.orderItems);
   }
+
   order.orderStatus = req.body.status; // Update the order status
 
   // If the status is "Delivered", set the delivery date
@@ -113,30 +96,27 @@ exports.updateOrder = catchAsyncErrors(async (req, res, next) => {
   }
 
   await order.save({ validateBeforeSave: false }); // Save the updated order
+
   // Respond with success status
   res.status(200).json({
     success: true,
   });
 });
 
-// Helper function to update stock of a product
-async function updateStock(id, quantity) {
-  const product = await Product.findById(id);
-
-  // Reduce the stock of the product
-  product.Stock -= quantity;
-
-  await product.save({ validateBeforeSave: false }); // Save the updated product
+// Helper function to update stock of products in batch
+async function updateStockInBatch(orderItems) {
+  await Promise.all(
+    orderItems.map(async (item) => {
+      const product = await Product.findById(item.product);
+      product.Stock -= item.quantity;
+      await product.save({ validateBeforeSave: false });
+    })
+  );
 }
 
 // Delete an order -- admin only
 exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
-  const order = await Order.findById(req.params.id);
-
-  // If the order is not found, return an error
-  if (!order) {
-    return next(new ErrorHandler("order not found with this id", 404));
-  }
+  const order = await fetchOrder(req.params.id, next);
 
   await order.remove(); // Remove the order from the database
 
@@ -145,3 +125,12 @@ exports.deleteOrder = catchAsyncErrors(async (req, res, next) => {
     success: true,
   });
 });
+
+// Helper function to fetch order by ID
+async function fetchOrder(orderId, next) {
+  const order = await Order.findById(orderId).populate("user", "name email");
+  if (!order) {
+    return next(new ErrorHandler("Order not found with this id", 404));
+  }
+  return order;
+}

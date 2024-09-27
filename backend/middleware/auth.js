@@ -5,39 +5,35 @@ const User = require("../models/userModel");
 
 // Middleware to check if the user is authenticated
 exports.isAuthenticatedUser = catchAsyncErrors(async (req, res, next) => {
-  // Retrieve token from cookies
-  const { token } = req.cookies;
-  
-  // Check if token is present
+  const { token } = req.cookies; // Destructure token from cookies
+
+  // If token is not found, return an authentication error
   if (!token) {
-    return next(new ErrorHandler("Please Login to access this resource"));
+    return next(new ErrorHandler("Please Login to access this resource", 401)); // Added 401 status code for unauthorized access
   }
 
-  // Verify token using JWT secret
-  const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+  // Verify token and decode data
+  const { id } = jwt.verify(token, process.env.JWT_SECRET);
 
-  // Find user by ID from the token
-  req.user = await User.findById(decodedData.id);
-  
-  // Proceed to the next middleware or route handler
-  next();
+  // Attach user information to the request object
+  req.user = await User.findById(id);
+
+  // If user is not found (which should be unlikely if the token is valid)
+  if (!req.user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  next(); // Proceed to the next middleware
 });
 
 // Middleware to authorize user roles
-// Allows access only to users with specified roles
-exports.authorizeRoles = (...roles) => {
-  return (req, res, next) => {
-    // Check if the user's role is included in the allowed roles
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new ErrorHandler(
-          `Role: ${req.user.role} is not allowed to access this resource`,
-          403
-        )
-      );
-    }
+exports.authorizeRoles = (...roles) => (req, res, next) => {
+  if (!roles.includes(req.user.role)) {
+    // If user's role is not authorized, return forbidden error
+    return next(
+      new ErrorHandler(`Role: ${req.user.role} is not allowed to access this resource`, 403)
+    );
+  }
 
-    // Proceed to the next middleware or route handler
-    next();
-  };
+  next(); // Proceed if authorized
 };
