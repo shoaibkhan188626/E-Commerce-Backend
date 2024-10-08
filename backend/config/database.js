@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const connectDataBase = async () => {
   try {
     // Connect to MongoDB using mongoose
-    const data = await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/market", {
+    const data = await mongoose.connect(process.env.DB_URI|| "mongodb://localhost:27017/market", {
       useNewUrlParser: true,   // Uses the new MongoDB connection string parser
       useUnifiedTopology: true // Enables the new unified topology engine for better server discovery and monitoring
     });
