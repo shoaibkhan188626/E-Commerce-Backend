@@ -42,11 +42,11 @@ const userSchema = new mongoose.Schema({
   }),
 
   // User's confirmation code for account verification
-  confirmationCode: field(String, {
-    unique: true, // Must be unique
-    index: true, // Indexing for confirmation codes
-    required: false,
-  }),
+  // confirmationCode: field(String, {
+  //   unique: true, // Must be unique
+  //   index: true, // Indexing for confirmation codes
+  //   required: false,
+  // }),
 
   // User's role (e.g., user, admin)
   role: field(String, {
