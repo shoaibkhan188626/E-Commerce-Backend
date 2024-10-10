@@ -45,6 +45,7 @@ const userSchema = new mongoose.Schema({
   confirmationCode: field(String, {
     unique: true, // Must be unique
     index: true, // Indexing for confirmation codes
+    required: false,
   }),
 
   // User's role (e.g., user, admin)
@@ -59,8 +60,8 @@ const userSchema = new mongoose.Schema({
   }),
 
   // Password reset token and expiry date
-  resetPasswordToken: field(String, { index: true }),
-  resetPasswordExpire: field(Date),
+  resetPasswordToken: field(String, { index: true, required: false }),
+  resetPasswordExpire: field(Date, { required: false }),
 });
 
 // Pre-save middleware to hash password before saving
